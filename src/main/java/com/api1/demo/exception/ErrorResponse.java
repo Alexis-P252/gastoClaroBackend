@@ -1,0 +1,22 @@
+package com.api1.demo.exception;
+
+import java.time.Instant;
+import java.util.List;
+
+// Formato único de error para toda la API: siempre se ve igual,
+// tenga la excepción que tenga origen.
+public record ErrorResponse(
+        Instant timestamp,
+        int status,
+        String error,
+        String message,
+        List<String> details
+) {
+    public ErrorResponse(int status, String error, String message) {
+        this(Instant.now(), status, error, message, List.of());
+    }
+
+    public ErrorResponse(int status, String error, String message, List<String> details) {
+        this(Instant.now(), status, error, message, details);
+    }
+}
