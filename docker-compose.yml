@@ -1,0 +1,42 @@
+services:
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: gastoclaro-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: gastoclaro
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d gastoclaro"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gastoclaro-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        # No arranca la app hasta que Postgres esté realmente listo para
+        # aceptar conexiones
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/gastoclaro
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      JWT_SECRET: ${JWT_SECRET:-f1eFOihVn8xBf9qhll75xLic2jCmyyrCWM8gwpAjMpP}
+      JWT_EXPIRATION_MS: 86400000
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres_data:
